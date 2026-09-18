@@ -1,23 +1,21 @@
 # Telewish
 
-A single-file, no-backend, peer-to-peer chat app. Two people connect directly over WebRTC — messages never pass through a server, and everything is encrypted end-to-end with AES-256 on top of DTLS.
+Direct P2P chat. No server sees a single message.
 
-Telewish is just one HTML file (`telewish.html`). No build step, no server required, no accounts.
+Two people, one direct WebRTC connection, zero backend. Everything is encrypted end-to-end with AES-256 on top of DTLS. Telewish is one HTML file — no build step, no server, no accounts.
 
 ## How it works
 
-WebRTC needs a way for two peers to exchange connection info before a direct link can open (the "handshake"). Telewish gives you two ways to do that:
+Two peers need to swap connection info before a direct link can open. Telewish does this one of two ways:
 
-- **Manual / QR code** — one person generates a connection code (shown as text or a QR code), the other pastes it in or scans it to generate a reply code, which goes back to the first person. No server involved at all.
-- **Relay server (optional)** — if you'd rather not copy-paste codes back and forth, you can point both sides at a small WebSocket relay server (`wss://...`) that only passes the handshake messages along. It never sees your chat messages, and the connection becomes direct once the handshake completes. Telewish doesn't include a relay server implementation — bring your own, or use one someone you trust runs.
+- **Manual / QR code** — one person generates a code (text or QR), the other scans or pastes it in and sends back a reply code. No server involved.
+- **Relay server (optional)** — point both sides at a WebSocket relay (`wss://...`) to skip the copy-pasting. It only passes the handshake along, never sees your messages, and the connection becomes direct once it's done. Bring your own relay, or use one you trust.
 
-Either way, the actual chat connection is a direct WebRTC data channel between the two browsers, with messages further encrypted using a key derived from a split code + passphrase (shared over two different channels, so no single link/message contains everything needed to connect).
+The actual chat runs over a direct WebRTC data channel, with messages further encrypted using a key derived from a split code + passphrase — shared over two separate channels, so no single message is enough to connect.
 
 ## Getting started
 
-Just open `telewish.html` in a browser. For encryption to work (WebCrypto requires a secure context), serve it over `https://` or open it from `localhost` — opening the raw file with `file://` may disable encryption features in some browsers.
-
-For local testing:
+Open `telewish.html` in a browser. Encryption needs a secure context, so serve it over `https://` or `localhost` — opening it directly as a file may disable encryption in some browsers.
 
 ```bash
 python3 -m http.server 8000
@@ -26,23 +24,22 @@ python3 -m http.server 8000
 
 ## Features
 
-- Direct P2P messaging over WebRTC — no message ever touches a server
-- End-to-end encryption (AES-256) layered on top of DTLS
-- Split-code connection setup (code + passphrase over separate channels) so no single shared link is enough to connect
-- QR code generation/scanning for the handshake
-- Optional relay server support for easier connection setup
-- Light, dark, and rose themes (plus a custom theme option)
-- Sound settings, avatars, and other small UX niceties
+- Direct P2P messaging over WebRTC — no server ever sees a message
+- End-to-end encryption (AES-256) on top of DTLS
+- Split code + passphrase handshake, shared over separate channels
+- QR code generation and scanning
+- Optional relay server support
+- File, image, and voice messages
+- Light, dark, and rose themes, plus a custom option
+- Sounds, avatars, and other small touches
 
 ## Security notes
 
-- This is a personal/hobby project and has **not** had a professional security audit. Please review the code yourself before relying on it for sensitive communication.
-- The optional relay server only ever sees WebRTC handshake metadata (SDP offers/answers), never chat content — but you're trusting whoever runs that relay to not tamper with the handshake. Using a relay you control, or the manual QR/code flow, avoids that trust requirement entirely.
-- Keep the code and the passphrase on separate channels (as the app prompts you to) — sending both together defeats the purpose of splitting them.
+This is a personal project and hasn't had a professional security audit — review the code yourself before relying on it for anything sensitive. A relay only ever sees handshake metadata, never chat content, but you're trusting it not to tamper with that handshake; use one you control, or skip it with the manual QR/code flow. Keep the code and passphrase on separate channels, as the app prompts — sending both together defeats the point.
 
 ## Contributing
 
-Issues and pull requests are welcome. Since this is a single HTML file, please keep changes self-contained and avoid adding new external dependencies unless there's a good reason.
+Issues and pull requests welcome. Since this is a single HTML file, keep changes self-contained and avoid new dependencies unless there's a good reason.
 
 ## License
 
