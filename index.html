@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Telewish — Direct P2P Chat</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffcc33' stroke='%23181410' stroke-width='1.5' d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z'/%3E%3Cpath fill='none' stroke='%23181410' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M9.5 12l1.8 1.8L15 10'/%3E%3C/svg%3E">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('telewishTheme') || 'light';
+    if (t !== 'light' && t !== 'dark' && t !== 'rose' && t !== 'custom') t = 'light';
+    if (t === 'custom'){
+      document.documentElement.setAttribute('data-theme', localStorage.getItem('telewishCustomBase') === 'dark' ? 'dark' : 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', t);
+    }
+  }catch(e){}
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== SPLASH ===================== -->
+<div id="splash" aria-hidden="true">
+  <div class="tetrominos" role="img" aria-label="Loading">
+    <div class="tetromino box1"></div>
+    <div class="tetromino box2"></div>
+    <div class="tetromino box3"></div>
+    <div class="tetromino box4"></div>
+  </div>
+</div>
+
+<header>
+  <div class="brand">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+    <h1>Telewish</h1>
+  </div>
+  <span id="status" aria-live="polite"><span class="dot"></span>not connected</span>
+  <div class="headerRight">
+    <button id="chatsBtn" class="hdrBtn" type="button" title="Saved chats" aria-label="Saved chats">
+      <svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
+    </button>
+    <button id="profileBtn" class="avatarBtn" type="button" title="Profile & settings" aria-label="Profile and settings">
+      <span id="profileInitial">?</span>
+    </button>
+  </div>
+</header>
+
+<div id="setupScroll">
+<div id="setup">
+
+  <!-- ============ WARNING ============ -->
+  <div class="step active" id="stepWarning">
+    <div class="card">
+      <div class="warnIcon">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h2>Before you connect</h2>
+      <p>Telewish links two browsers directly — no server relaying your messages. Your chat is encrypted twice: once by WebRTC's built-in DTLS, and again with a fresh AES-256 key derived from the passphrase you speak to each other.</p>
+
+      <ul class="riskList">
+        <li>
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>
+          <span><b>Your IP address is visible to the other person.</b><span class="sub">A direct connection means their device sees your network address — the same as a video call. Use a trustworthy no-log VPN if you want to hide it.</span></span>
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span><b>No one is moderating this.</b><span class="sub">There's no company, server, or report button behind Telewish — anything said here is between the two of you alone.</span></span>
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span><b>Only connect with people you trust.</b><span class="sub">The code and passphrase together are the keys. Share each half over a different channel — one on a screen, the other spoken aloud.</span></span>
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span><b>Nothing is saved unless you ask for it.</b><span class="sub">By default, closing the tab ends the conversation for good. You can opt in to keeping chats on this device only — they never leave your machine.</span></span>
+        </li>
+        <li class="privacy">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+          <span><b>Use a VPN for maximum privacy.</b><span class="sub">A VPN hides your real IP from your peer and from the STUN server used for the handshake. When both sides use a trustworthy no-log VPN, the other person sees only the VPN's address. This is the strongest simple upgrade — and unlike a relay, it adds almost no latency.</span></span>
+        </li>
+      </ul>
+
+      <label class="consentRow" id="consentRow">
+        <input type="checkbox" id="consentCheck" />
+        <span><strong>I understand</strong> this is a direct, unmoderated connection, and I'll only connect with people I trust.</span>
+      </label>
+      <p style="font-size:11px; color:var(--muted); margin-top:10px; text-align:center; font-weight:600;">
+        You'll only see this once a day on this device.
+      </p>
+
+      <div class="btn-row">
+        <button id="continueBtn" disabled>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          Continue
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CHOOSE ============ -->
+  <div class="step" id="stepChoose">
+    <div class="card">
+      <h2 id="chooseGreeting">Start or join a chat</h2>
+      <p>Telewish splits the connection code in half: one half is a code (QR or text), the other half is a short passphrase you share through a <b>different</b> channel. Both halves are needed — and they also salt the AES-256 key that encrypts every message on top of DTLS.</p>
+      <div class="roleRow">
+        <div class="roleBtn" id="startBtn">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <b>Start a chat</b>
+          <span>Generate the first code + passphrase</span>
+        </div>
+        <div class="roleBtn" id="joinBtn">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <b>Join a chat</b>
+          <span>Someone sent me a code + passphrase</span>
+        </div>
+      </div>
+
+      <label class="passModeToggle" for="strongPassCheck">
+        <input type="checkbox" id="strongPassCheck" checked>
+        <span>
+          <b>Use a strong word passphrase <span class="modePill strong" id="strongPill">On</span></b>
+          <small id="strongPassExplain">When <b>on</b>: 5 dictionary words + numbers, like "raven 37 amber 12" — easier to read aloud and much harder to guess. When <b>off</b>: a short 8-character password like "king1625" that's quicker to type and say, but noticeably weaker.</small>
+        </span>
+      </label>
+
+      <div class="vpnTip">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+        <span>
+          <b>Want to hide your IP? Use a VPN.</b>
+          <small>A no-log VPN hides your real address from the other person without slowing the connection down the way a relay does. Turn it on before you start the chat — both of you, ideally.</small>
+        </span>
+      </div>
+
+      <div class="hint">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Works on most home and mobile networks. Very restrictive corporate or school firewalls can occasionally block the direct connection.
+      </div>
+      <div class="backLink" id="openRelayBtn" style="margin-top:10px;">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+        Have a relay server? Use a short room code instead
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RELAY ============ -->
+  <div class="step" id="stepRelay">
+    <div class="card">
+      <h2>Quick connect</h2>
+      <p>Uses a small relay server just to pass the handshake between you two — it only ever sees connection metadata, never your messages, which stay direct and encrypted once connected.</p>
+      <label><span class="stepNum">1</span> Relay server address</label>
+      <input id="relayUrl" placeholder="wss://your-relay.example.com" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div id="relayCreateWrap">
+        <label><span class="stepNum">2</span> Create or join a room</label>
+        <div class="btn-row">
+          <button id="relayCreateBtn" type="button">Create room</button>
+          <button id="relayShowJoin" type="button" class="btn-secondary">Join a room</button>
+        </div>
+      </div>
+      <div id="relayJoinWrap" style="display:none;">
+        <label><span class="stepNum">2</span> Room code from the other person</label>
+        <div class="btn-row">
+          <input id="relayCodeIn" maxlength="8" placeholder="ABC123" style="text-transform:uppercase" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
+          <button id="relayJoinGo" type="button">Join</button>
+        </div>
+      </div>
+      <div id="relayCodeOutWrap" style="display:none; margin-top:14px;">
+        <label>Share this code with them</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input id="relayCodeOut" readonly style="flex:1;">
+          <button id="copyRelayCode" type="button" style="flex-shrink:0; padding:9px 13px; font-size:12px;">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Copy code
+          </button>
+        </div>
+      </div>
+      <div class="errBox" id="errRelay">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span></span>
+      </div>
+      <div class="backLink" id="backRelay">
+        <svg class="icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+        Back
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ START (A) ============ -->
+  <div class="step" id="stepStartA">
+    <div class="card">
+      <h2>Send this code</h2>
+      <p>Show the QR or send the code — but keep the passphrase for a <b>different</b> channel. The code on its own can't connect to anything.</p>
+
+      <label><span class="stepNum">1</span>Your code — share this with them</label>
+
+      <div class="qrPanel" id="offerQrPanel">
+        <div class="qrPanelLabel">
+          <svg class="icon" viewBox="0 0 24 24" style="font-size:14px;"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Scan this with their Telewish
+        </div>
+        <canvas id="offerQrCanvas" width="220" height="220"></canvas>
+        <div class="qrFallback" id="offerQrFallback">This code is too long for a readable QR — use the text below instead.</div>
+        <div class="qrPanelHint">This QR holds the <b>code half only</b>. They'll still need the passphrase below.</div>
+      </div>
+
+      <textarea id="offerOut" readonly style="margin-top:12px;"></textarea>
+      <div class="charCount" id="offerOutCount"></div>
+      <div class="btn-row">
+        <button id="copyOffer">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy code
+        </button>
+      </div>
+
+      <div class="passPanel">
+        <div class="passHead">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <b>Your passphrase</b>
+          <span class="lockTag" id="offerLockTag">say it aloud</span>
+        </div>
+        <div class="passChips" id="offerPassChips"></div>
+        <div class="passNote" id="offerPassNote">These words <b>are</b> the missing half of the code — and they also seed the AES-256 key. Read them aloud, or send them in a separate message. Never alongside the code.</div>
+        <div class="btn-row">
+          <button id="copyOfferPass" type="button" class="btn-secondary">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy passphrase
+          </button>
+        </div>
+      </div>
+
+      <div class="btn-row" id="startReadyRow" style="margin-top:18px;">
+        <button id="startReadyBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 19-7-7 7-7"/></svg>
+          I've shared both — show reply input
+        </button>
+      </div>
+
+      <div id="startStage2" class="stageBlock" style="display:none;">
+        <label><span class="stepNum">2</span>Paste, scan or upload their reply code</label>
+        <textarea id="answerIn" placeholder="Paste their reply code here…" autocomplete="off" spellcheck="false"></textarea>
+        <div class="charCount" id="answerInCount"></div>
+        <div class="scanRow">
+          <button class="btn-secondary" id="scanAnswerBtn" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+            Scan QR
+          </button>
+          <button class="btn-secondary" id="uploadAnswerBtn" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload QR
+          </button>
+        </div>
+      </div>
+
+      <div id="startStage3" class="stageBlock" style="display:none;">
+        <label><span class="stepNum">3</span><span id="answerPassLabel">Type the reply passphrase they told you</span></label>
+        <input id="answerPassIn" class="passInput" placeholder="raven 37 amber 12 …" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <div class="passPreview" id="answerPassPreview"></div>
+
+        <div class="btn-row">
+          <button id="finishConnect">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            Connect
+          </button>
+        </div>
+      </div>
+
+      <div class="errBox" id="errA">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="errAText"></span>
+      </div>
+      <p class="backLink" id="back1">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        back
+      </p>
+    </div>
+  </div>
+
+  <!-- ============ JOIN (B) ============ -->
+  <div class="step" id="stepJoinB">
+    <div class="card">
+      <h2>Join a chat</h2>
+
+      <label><span class="stepNum">1</span>Paste, scan or upload the code they sent you</label>
+      <textarea id="offerIn" placeholder="Paste their code here…" autocomplete="off" spellcheck="false"></textarea>
+      <div class="charCount" id="offerInCount"></div>
+      <div class="scanRow">
+        <button class="btn-secondary" id="scanOfferBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+          Scan QR
+        </button>
+        <button class="btn-secondary" id="uploadOfferBtn" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload QR
+        </button>
+      </div>
+
+      <div id="joinStage2" class="stageBlock" style="display:none;">
+        <label><span class="stepNum">2</span><span id="offerPassLabel">Type the passphrase they told you</span></label>
+        <input id="offerPassIn" class="passInput" placeholder="raven 37 amber 12 …" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <div class="passPreview" id="offerPassPreview"></div>
+      </div>
+
+      <div id="joinStage3" class="stageBlock" style="display:none;">
+        <div class="btn-row">
+          <button id="genAnswer">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            Generate reply code
+          </button>
+        </div>
+      </div>
+
+      <div class="errBox" id="errB">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="errBText"></span>
+      </div>
+
+      <div id="answerOutWrap" style="display:none;">
+        <label><span class="stepNum">3</span>Send this reply back to them</label>
+
+        <div class="qrPanel" id="answerQrPanel">
+          <div class="qrPanelLabel">
+            <svg class="icon" viewBox="0 0 24 24" style="font-size:14px;"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Let them scan this
+          </div>
+          <canvas id="answerQrCanvas" width="220" height="220"></canvas>
+          <div class="qrFallback" id="answerQrFallback">This reply is too long for a readable QR — use the text below instead.</div>
+          <div class="qrPanelHint">Reply code half only — they'll still need the passphrase below.</div>
+        </div>
+
+        <textarea id="answerOut" readonly style="margin-top:12px;"></textarea>
+        <div class="charCount" id="answerOutCount"></div>
+        <div class="btn-row">
+          <button id="copyAnswer">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy reply code
+          </button>
+        </div>
+
+        <div class="passPanel">
+          <div class="passHead">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <b>Reply passphrase</b>
+            <span class="lockTag" id="answerLockTag">say it aloud</span>
+          </div>
+          <div class="passChips" id="answerPassChips"></div>
+          <div class="passNote" id="answerPassNote">Read these to them the same way you got theirs. They'll need <b>both</b> halves before the connection opens.</div>
+          <div class="btn-row">
+            <button id="copyAnswerPass" type="button" class="btn-secondary">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy passphrase
+            </button>
+          </div>
+        </div>
+
+        <p style="color:var(--muted); font-size:12px; margin-top:12px; line-height:1.55;">Once they paste your reply code and type the passphrase above, you'll connect automatically.</p>
+      </div>
+
+      <p class="backLink" id="back2">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        back
+      </p>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ===================== CHAT ===================== -->
+<div id="chatWrap">
+  <div id="chatHeader">
+    <div class="chStatus">
+      <span class="chDot" id="chatDot"></span>
+      <span class="chAvatar" id="chatAvatar" style="display:none;"><span>A</span></span>
+      <span class="chName" id="chatName">Connecting…</span>
+      <span class="chSas" id="chatSas" style="display:none;" title="Compare this code out loud with the other person — if it matches, no one is in the middle.">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+        <span id="chatSasValue">····-····</span>
+      </span>
+      <span class="qbars off" id="qBars" title="Connection quality"><i></i><i></i><i></i></span>
+    </div>
+    <button id="chatDisconnect" class="chDisconnect" type="button" title="Disconnect" aria-label="Disconnect" disabled>
+      <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="connBanner" id="connBanner"><span class="spin"></span><span id="connBannerText">Reconnecting…</span></div>
+
+  <div id="messages" aria-live="polite" aria-relevant="additions"></div>
+
+  <div id="attachPreview"></div>
+
+  <div id="replyBar">
+    <div class="rb-inner">
+      <span class="rb-bar"></span>
+      <div class="rb-body">
+        <div class="rb-name" id="rbName">Replying</div>
+        <div class="rb-text" id="rbText"></div>
+      </div>
+    </div>
+    <button class="rb-close" id="rbClose" type="button" aria-label="Cancel reply">✕</button>
+  </div>
+
+  <div id="recBar">
+    <span class="rec-dot"></span>
+    <span class="rec-time" id="recTime">0:00</span>
+    <span class="rec-hint">Recording voice message…</span>
+    <button class="btn-secondary" id="recCancel" type="button" style="padding:8px 14px; font-size:12px;">Cancel</button>
+    <button id="recSend" type="button" style="padding:8px 14px; font-size:12px;">Send</button>
+  </div>
+
+  <div id="inputRow">
+    <input type="file" id="fileInput" multiple hidden />
+    <button id="attachBtn" class="iconBtn" type="button" title="Attach file" aria-label="Attach file" disabled>
+      <svg class="icon" viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+    </button>
+    <input id="msgInput" placeholder="Type a message…" autocomplete="off" aria-label="Message" disabled />
+    <button id="emojiBtn" class="iconBtn" type="button" title="Emoji" aria-label="Emoji" disabled>🙂</button>
+    <div class="emoji-pop" id="emojiPop"></div>
+    <button id="micBtn" class="iconBtn" type="button" title="Hold to record voice message" aria-label="Record voice message" disabled>
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    </button>
+    <button id="sendBtn" title="Send" aria-label="Send" disabled>
+      <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ===================== LIGHTBOX ===================== -->
+<div class="lightbox" id="lightbox">
+  <img id="lightboxImg" src="" alt="">
+  <div class="lb-actions">
+    <button id="lbDownload" class="btn-secondary">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download
+    </button>
+  </div>
+</div>
+
+<!-- ===================== SCANNER ===================== -->
+<div class="scanModal" id="scanModal">
+  <div class="scanBox">
+    <div class="scanHeader">
+      <b>Scan QR code</b>
+      <button class="scanClose" id="scanClose" type="button" aria-label="Close scanner">✕</button>
+    </div>
+    <div class="scanVideoWrap">
+      <video id="scanVideo" playsinline muted autoplay></video>
+      <div class="scanLine"></div>
+    </div>
+    <p class="scanHint" id="scanHintText">Point your camera at the QR code on their screen.</p>
+    <div class="scanTools">
+      <button class="btn-secondary" id="scanTorch" type="button">🔦 Torch</button>
+      <button class="btn-secondary" id="scanSwitch" type="button">🔄 Camera</button>
+    </div>
+    <div class="errBox" id="scanErr">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="scanErrText"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QR FULLSCREEN ===================== -->
+<div class="qrFullscreen" id="qrFullscreen">
+  <button class="qrFullscreenClose" id="qrFullscreenClose" type="button" aria-label="Close">✕</button>
+  <canvas id="qrFullscreenCanvas"></canvas>
+  <p class="qrFsHint">Have them scan this with the in-app scanner · tap anywhere to close</p>
+</div>
+
+<!-- ===================== PROFILE SHEET ===================== -->
+<div class="sheet" id="profileSheet">
+  <div class="sheetBox">
+    <div class="sheetHead">
+      <h3>Profile &amp; settings</h3>
+      <button class="sheetClose" data-close="profileSheet" type="button" aria-label="Close">✕</button>
+    </div>
+
+    <div class="pfTop">
+      <div class="pfAvatar" id="pfAvatar" title="Change profile picture">
+        <span id="pfInitial">?</span>
+        <span class="camTag">CHANGE</span>
+      </div>
+      <div style="flex:1; min-width:0;">
+        <label style="margin:0 0 6px;">Display name</label>
+        <input id="pfName" class="fieldInput" maxlength="28" placeholder="Your name" autocomplete="off" style="font-family:var(--sans); font-size:14px; font-weight:700;">
+        <div class="pfHint" style="margin-top:8px;">Stored on this device only. It's shared with the person you're chatting with.</div>
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top:14px;">
+      <button id="pfSave" type="button">Save profile</button>
+      <button id="pfClearPic" type="button" class="btn-secondary">Remove photo</button>
+    </div>
+
+    <label style="margin-top:20px;">Appearance</label>
+    <div class="themeRow" id="themeRow">
+      <div class="themeSwatch" data-theme-pick="light">
+        <span class="dots"><i style="background:#ffcc33"></i><i style="background:#7bd4ff"></i></span>
+        Sunshine
+      </div>
+      <div class="themeSwatch" data-theme-pick="dark">
+        <span class="dots"><i style="background:#1d1a16"></i><i style="background:#ffcc33"></i></span>
+        Midnight
+      </div>
+      <div class="themeSwatch" data-theme-pick="rose">
+        <span class="dots"><i style="background:#ff6b7e"></i><i style="background:#ffffff"></i></span>
+        Rose
+      </div>
+      <div class="themeSwatch" data-theme-pick="custom" id="customThemeSwatch">
+        <span class="dots"><i id="customDot1" style="background:#7c5cff"></i><i id="customDot2" style="background:#ffffff"></i></span>
+        Custom
+      </div>
+    </div>
+    <div class="settingRow" id="customThemeRow" style="margin-top:10px;">
+      <div class="sr-body">
+        <div class="sr-title">Custom accent color</div>
+        <div class="sr-sub">Pick a color and the whole theme is built around it.</div>
+      </div>
+      <input type="color" id="customThemeColor" value="#7c5cff" style="width:42px; height:34px; border:2.5px solid var(--text); border-radius:8px; padding:0; background:none; cursor:pointer;">
+    </div>
+    <div class="settingRow">
+      <div class="sr-body">
+        <div class="sr-title">Custom theme base</div>
+        <div class="sr-sub">Whether the custom theme sits on a light or dark background.</div>
+      </div>
+      <div class="switch" id="customThemeBase" role="switch" tabindex="0"></div>
+    </div>
+
+    <label style="margin-top:20px;">Preferences</label>
+
+    <div class="settingRow">
+      <div class="sr-body">
+        <div class="sr-title">Sound effects</div>
+        <div class="sr-sub">Clicks, message chimes and connection tones.</div>
+      </div>
+      <div class="switch" id="setSound" role="switch" tabindex="0"></div>
+    </div>
+
+    <div class="settingRow">
+      <div class="sr-body">
+        <div class="sr-title">Desktop &amp; mobile notifications</div>
+        <div class="sr-sub">Get notified about new messages when this tab is in the background.</div>
+      </div>
+      <div class="switch" id="setNotif" role="switch" tabindex="0"></div>
+    </div>
+
+    <div class="settingRow">
+      <div class="sr-body">
+        <div class="sr-title">Save chats on this device</div>
+        <div class="sr-sub">Stores the full conversation in this browser's local storage. Nothing is uploaded anywhere. You can delete any saved chat at any time.</div>
+      </div>
+      <div class="switch" id="setSave" role="switch" tabindex="0"></div>
+    </div>
+
+    <label style="margin-top:20px;">Dev</label>
+    <div class="settingRow">
+      <div class="sr-body">
+        <div class="sr-title">YouTube — wishissueyt</div>
+        <div class="sr-sub">Updates, demos and dev logs for this project.</div>
+      </div>
+      <a class="btn-secondary" style="text-decoration:none; padding:8px 14px; border-radius:10px;"
+         href="https://www.youtube.com/@wishissueyt" target="_blank" rel="noopener noreferrer">Open</a>
+    </div>
+    <div class="settingRow">
+      <div class="sr-body">
+        <div class="sr-title">Discord</div>
+        <div class="sr-sub">Bug reports, feature requests and general chat.</div>
+      </div>
+      <a class="btn-secondary" style="text-decoration:none; padding:8px 14px; border-radius:10px;"
+         href="https://discord.gg/PsUAzvhKFa" target="_blank" rel="noopener noreferrer">Join</a>
+    </div>
+
+    <input type="file" id="pfAvatarInput" accept="image/*" class="hiddenFile">
+  </div>
+</div>
+
+<!-- ===================== CHATS SHEET ===================== -->
+<div class="sheet" id="chatsSheet">
+  <div class="sheetBox">
+    <div class="sheetHead">
+      <h3>Saved chats</h3>
+      <button class="sheetClose" data-close="chatsSheet" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="chatList" id="chatList"></div>
+  </div>
+</div>
+
+<!-- ===================== SAVED CHAT VIEWER ===================== -->
+<div class="sheet" id="viewSheet">
+  <div class="viewBox">
+    <div class="viewHead">
+      <span class="chAvatar" id="viewAvatar" style="display:none;"><span>A</span></span>
+      <h3 id="viewTitle">Chat</h3>
+      <button class="sheetClose" id="viewDelete" type="button" style="background:var(--danger-dim); color:var(--danger); border-color:var(--danger);" title="Delete saved chat">
+        <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+      <button class="sheetClose" data-close="viewSheet" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="viewBanner">Read-only copy saved on this device</div>
+    <div class="viewBody" id="viewBody"></div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+<input type="file" id="qrUploadInput" accept="image/*" style="display:none">
+
+<script src="script.js"></script>
+
+</body>
+</html>
