@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icons/logo.png" alt="Telewish logo" width="120">
+  <img src="icon.png" alt="Telewish logo" width="120">
 </p>
 
 # Telewish
@@ -9,26 +9,30 @@ A private, serverless chat that runs in your browser. Pair two phones with a QR 
 ![Platform](https://img.shields.io/badge/platform-any%20modern%20browser-3b6cf6)
 ![Transport](https://img.shields.io/badge/transport-WebRTC-f0567f)
 ![Build](https://img.shields.io/badge/build-none%20(HTML%20%2B%20CSS%20%2B%20JS)-2ec4b6)
+![License](https://img.shields.io/badge/license-GPLv3-orange)
 ![Encryption](https://img.shields.io/badge/passphrase-AES--GCM-7c5cfc)
 
 ## Screenshots
 
-### Chats
+### Home and chats
 <p align="center">
-  <img src="icons/screenshot-chats.png" alt="Chat list" width="260">
-  <img src="icons/screenshot-chat.png" alt="A conversation" width="260">
+  <img src="main.png" alt="Telewish home screen" width="260">
+  <img src="chats.png" alt="A conversation" width="260">
 </p>
 
 ### Pair with a QR
 <p align="center">
-  <img src="icons/screenshot-qr.png" alt="QR pairing" width="260">
-  <img src="icons/screenshot-scan.png" alt="QR scanner" width="260">
+  <img src="qr.png" alt="QR pairing" width="260">
 </p>
 
-### Nearby and Listen together
+### Nearby
 <p align="center">
-  <img src="icons/screenshot-nearby.png" alt="Nearby radar" width="260">
-  <img src="icons/screenshot-music.png" alt="Listen together with lyrics" width="260">
+  <img src="detecting.png" alt="Detecting nearby devices" width="260">
+</p>
+
+### Listen together
+<p align="center">
+  <img src="music.png" alt="Listen together with lyrics" width="260">
 </p>
 
 ## Why Telewish?
@@ -93,7 +97,6 @@ No build step and no dependencies to install.
    index.html
    style.css
    main.js
-   icons/
    ```
 
 2. Serve the folder over HTTPS or localhost. The camera, microphone and clipboard need a secure page:
@@ -122,7 +125,8 @@ Add the same passphrase on both phones first if you want encrypted messages.
 | `index.html` | Page markup and CDN script tags |
 | `style.css` | All styling, themes and animations |
 | `main.js` | App logic: pairing, chat, calls, whiteboard, music, customization |
-| `icons/` | Logo and screenshots used by this README |
+| `icon.png`, `main.png`, `chats.png`, `qr.png`, `detecting.png`, `music.png` | Logo and screenshots used by this README |
+| `LICENSE` | GPL-3.0 |
 
 ## Under the hood
 
@@ -146,7 +150,7 @@ Chats stay between you and your friend, but some features call outside services:
 
 ## Credits and licenses
 
-App by [@wishismachine](https://github.com/wishismachine).
+App by [@wishismachine](https://github.com/wishissue).
 
 - [Tabler Icons](https://tabler.io/icons) (MIT)
 - [canvas-confetti](https://github.com/catdad/canvas-confetti) (ISC)
@@ -156,6 +160,6 @@ App by [@wishismachine](https://github.com/wishismachine).
 - [LRCLIB](https://lrclib.net/) for lyrics, iTunes Search for cover art
 - Liquid-glass effect inspired by open-source projects rizroze/liquid-glass and archisvaze/liquid-glass
 
-Add a `LICENSE` file to state how this project can be used.
+Telewish is licensed under the GNU GPL v3. See [LICENSE](LICENSE) for the full text.
 
 Made for good conversations.
