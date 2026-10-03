@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="theme-color" content="#f3f6ff"><link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chats</title>
+
+<script async src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/motion@12.23.12/dist/motion.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head><body>
+<div id="app">
+<section class="view on" id="home">
+  <header><div class="t"><b>Chats</b></div><button class="ib p" onclick="newConn()" data-i="plus" title="New connection"></button></header>
+  <div class="srch"><span data-i="search"></span><input id="hs" placeholder="Search" oninput="clearTimeout(window._h1);window._h1=setTimeout(draw,150)"></div>
+  <div class="list" id="list"></div>
+ <nav><button class="on" onclick="go('home')"><span data-i="chat"></span>Chat</button><button onclick="newConn()"><span data-i="qr"></span>Connect</button><button onclick="go('nearby')"><span data-i="wifi"></span>Nearby</button><button onclick="go('settings')"><span data-i="gear"></span>Settings</button></nav>
+</section>
+
+<div id="emp"><div><span data-i="chat" class="emi"></span><p class="hint">Pick a chat or tap Connect</p></div></div>
+<section class="view" id="chat">
+ <div class="wpl" id="wpl"></div>
+ <div class="bar"><button class="ib" onclick="go('home')" data-i="back"></button><span id="cav"></span>
+  <div class="n"><b id="cn"></b><span class="hint" id="cs" style="display:block"></span></div>
+  <button class="ib" onclick="callStart()" data-i="phone" title="Voice call"></button><button class="ib" onclick="togS()" data-i="search"></button><button class="ib" onclick="cmenu(event)" data-i="dots"></button></div>
+ <div class="srch" id="cs2" style="display:none"><span data-i="search"></span><input id="ms" placeholder="Search" oninput="clearTimeout(window._h2);window._h2=setTimeout(renderMsgs,150)"></div>
+ <div class="msgs" id="msgs" onclick="closeMenu()"></div>
+ <div class="ctx" id="ctx"><span id="ctxt"></span><button class="ib" onclick="clr()" data-i="x" style="width:28px;height:28px"></button></div>
+ <div class="pk" id="pk"></div><div class="compose"><button class="ib" onclick="$('att').click()" data-i="clip"></button><input type="file" id="att" hidden onchange="sendFile(this.files[0]);this.value=''"><button class="ib" onclick="tpk()" data-i="happy"></button><input id="inp" placeholder="Message" autocomplete="off" oninput="typing()"><button class="ib" id="mic" onclick="rec()" data-i="mic"></button><button class="ib p" onclick="send()" data-i="send"></button></div>
+</section>
+
+<section class="view" id="connect">
+ <div class="bar"><button class="ib" onclick="go('home')" data-i="back"></button><b>New connection</b></div>
+ <div class="sheet">
+  <div class="art"><svg viewBox="0 0 200 110"><circle cx="50" cy="55" r="34" fill="#dbe5ff"/><circle cx="150" cy="55" r="34" fill="#ffe1ec"/><circle cx="50" cy="48" r="13" fill="#3b6cf6"/><circle cx="150" cy="48" r="13" fill="#f0567f"/><path d="M28 82q22-24 44 0M128 82q22-24 44 0" fill="#3b6cf6" opacity=".25"/><path d="M84 55h32" stroke="#3b6cf6" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/></svg>
+  <p class="hint">Show your code, then scan theirs.</p></div>
+  <details><summary class="hint" style="cursor:pointer">Add passphrase (optional)</summary><input type="text" id="pass" placeholder="Passphrase"></details>
+  <div class="tabs"><button class="on" id="t1" onclick="tab(1)">Start</button><button id="t2" onclick="tab(2)">Join</button><button id="t3" onclick="tab(3)">Relay</button></div>
+  <div id="p1"><button class="btn" onclick="mkOffer()">Create QR code</button>
+   <div id="s1" style="display:none"><div class="qr" id="qo" onclick="zoomQR('qo')" title="Tap to enlarge"></div>
+   <textarea id="o" rows="2" readonly placeholder="Your code"></textarea><button class="btn g" onclick="cp('o')"><span data-i="copy"></span>Copy code</button>
+   <label>Their reply</label><textarea id="r" rows="2" placeholder="Paste reply, or scan it"></textarea>
+   <button class="btn" onclick="scan('r',finish)"><span data-i="cam"></span>Scan their reply</button><button class="btn g" onclick="finish()">Connect</button></div></div>
+  <div id="p2" style="display:none"><button class="btn" onclick="scan('j',mkAnswer)"><span data-i="cam"></span>Scan their QR</button>
+   <details><summary class="hint" style="cursor:pointer">Paste code instead</summary><textarea id="j" rows="2"></textarea><button class="btn g" onclick="mkAnswer()">Create reply</button></details>
+   <div id="s2" style="display:none"><div class="qr" id="qa" onclick="zoomQR('qa')" title="Tap to enlarge"></div>
+   <textarea id="a" rows="2" readonly placeholder="Your reply"></textarea><button class="btn g" onclick="cp('a')"><span data-i="copy"></span>Copy reply</button></div></div>
+  <div id="p3" style="display:none"><label>Relay URL</label><input type="text" id="ru" placeholder="wss://your-relay.example"><label>Room code</label><input type="text" id="rr" placeholder="Any shared word"><button class="btn" onclick="relay()">Join room</button></div>
+  <p class="hint" id="cst"></p>
+ </div>
+</section>
+
+<div id="dlg" onclick="if(event.target==this)this.classList.remove('on')"><div class="card"><b id="dt"></b><input type="text" id="di"><div class="ro"><button class="btn g" onclick="$('dlg').classList.remove('on')">Cancel</button><button class="btn" id="dok"></button></div></div></div>
+<div id="zoom" onclick="closeZoom()"><div class="qr" id="zq"></div></div>
+<section class="view" id="scan">
+ <div class="bar"><button class="ib" onclick="stopScan()" data-i="back"></button><div class="n"><b>Scan QR code</b><span class="hint" id="scst" style="display:block"></span></div></div>
+ <div class="scv"><video id="vid" playsinline muted></video><div class="scf"><i></i><i></i><i></i><i></i><u></u></div><div class="scp"><div id="scb"></div></div></div>
+ <div class="scx"><button class="btn g" onclick="$('simg').click()"><span data-i="image"></span>Scan from a photo</button><input type="file" id="simg" accept="image/*" hidden onchange="scanImg(this.files[0]);this.value=''"></div>
+</section>
+
+<section class="view" id="board">
+ <div class="bar"><button class="ib" onclick="go('chat')" data-i="back"></button><div class="n"><b>Whiteboard</b><span class="hint" id="bst" style="display:block"></span></div><button class="ib" onclick="bUndo()" data-i="reply" title="Undo"></button><button class="ib" onclick="bSave(1)" data-i="send" title="Send to chat"></button><button class="ib" onclick="bSave()" data-i="dl" title="Save PNG"></button><button class="ib" onclick="bClear()" data-i="trash" title="Clear"></button></div>
+ <div id="bwrap"><div id="bsc"><canvas id="bg0"></canvas><canvas id="ink"></canvas><div id="bcur"></div></div></div><div id="btl"></div>
+</section>
+<div id="pdlg" onclick="if(event.target==this)this.classList.remove('on')"><div class="card"><b>New poll</b><input class="pi" id="pq" placeholder="Ask a question" maxlength="200"><div id="po"></div><button class="btn g" onclick="pAdd()">+ Add option</button><label style="display:flex;gap:8px;align-items:center;margin:4px 0 10px"><input type="checkbox" id="pm">Allow multiple answers</label><div class="ro"><button class="btn g" onclick="$('pdlg').classList.remove('on')">Cancel</button><button class="btn" onclick="pSend()">Send</button></div></div></div>
+<div id="tst"></div>
+<div id="call"><button id="cmin" onclick="CALL.min=1;callUI()">Minimize</button><span id="cav2"></span><h2 id="cn2"></h2><div id="cst2"></div><div id="cbt"></div></div><div id="cpill" onclick="CALL.min=0;callUI()"></div>
+<section class="view" id="studio">
+ <div class="bar"><button class="ib" onclick="go('settings')" data-i="back"></button><b>Appearance studio</b></div>
+ <div class="sheet"><div class="stg"><div class="pv"><div class="wpl" id="pvw"></div><div class="b">Hey! How does the new look feel?</div><div class="b me">Love it<div class="meta"></div></div></div><div class="stc"><div class="tabs sc" id="stt"></div><div id="stb"></div></div></div></div>
+</section>
+
+<section class="view" id="nearby">
+ <div class="bar"><button class="ib" onclick="go('home')" data-i="back"></button><div class="n"><b>Nearby</b><span class="hint" id="nsum" style="display:block"></span></div><button class="ib" onclick="nRescan()" data-i="wifi" title="Rescan"></button></div>
+ <div class="sheet">
+  <div class="nc rdc"><div class="rdr" id="rdr"><i></i><i></i><i></i><span id="rme"></span></div><b id="rttl" style="display:block;font-size:17px">Nearby</b><p class="hint" id="rsub" style="margin:2px 0 12px"></p><div id="nscan"></div></div>
+  <div class="ntl"><button onclick="$('nbt').focus()"><span data-i="chat"></span>Message</button><button onclick="$('nfl').click()"><span data-i="clip"></span>File</button><button onclick="nMusicOpen('all')"><span data-i="music"></span>Music</button><button onclick="newConn()"><span data-i="qr"></span>QR link</button></div>
+  <input type="file" id="nfl" hidden onchange="nFileAll(this.files[0]);this.value=''">
+  <div class="nc"><div class="nb"><span class="dot" id="ndot"></span><span id="nban"></span></div>
+   <div style="display:flex;gap:8px"><input type="text" id="nbt" placeholder="Message everyone connected" style="margin:0" onkeydown="if(event.key=='Enter')nSendAll()"><button class="ib p" onclick="nSendAll()" data-i="send"></button></div>
+   <p class="hint" style="margin:10px 0 0" id="nres"></p></div>
+  <div class="nc"><h3>Connected devices</h3><div id="nlist"></div><button class="btn g" style="margin:10px 0 0" onclick="nDropAll()">Disconnect everyone</button></div>
+  
+ </div>
+</section>
+<section class="view" id="music">
+ <div class="mbg" id="mbg"></div>
+ <div class="bar"><button class="ib" onclick="nMusicBack()" data-i="back"></button><div class="n"><b>Listen together</b><span class="hint" id="mtg" style="display:block"></span></div></div>
+ <div class="sheet mps"><div class="mcv" id="mdisc"></div>
+  <div class="mmeta"><b id="mtt">No song yet</b><span id="mar"></span><small id="mst"></small></div>
+  <input type="range" id="mseek" min="0" max="1000" value="0" oninput="nSeek(this.value)" onchange="nCast('seek',N.a.currentTime)"><div class="mtm"><span id="mcur">0:00</span><span id="mdur">0:00</span></div>
+  <div class="mctl"><button class="ib" onclick="$('maf').click()" data-i="music" title="Choose song"></button><button class="mpl" id="mplay" onclick="nToggle()"></button><button class="ib" onclick="singT()" data-i="lyrics" title="Sing along"></button></div>
+  <input type="file" id="maf" accept="audio/*" hidden onchange="nPick(this.files[0]);this.value=''">
+  <div class="nc"><h3>Lyrics</h3><button class="ib sgx" onclick="singT()" data-i="x"></button><div class="lyb" id="mly"></div></div>
+  <div class="nc"><div class="rw" style="margin:0"><span class="hint">Volume</span><input type="range" id="mvol" min="0" max="100" value="100" oninput="N.a.volume=this.value/100"></div></div>
+  <div class="nc"><h3>Up next</h3><div id="mq"></div><button class="btn g" style="margin:8px 0 0" onclick="$('mqf').click()"><span data-i="plus"></span>Add songs to queue</button><input type="file" id="mqf" accept="audio/*" multiple hidden onchange="nqAdd([...this.files]);this.value=''"></div>
+  <div class="nc"><h3>Listeners</h3><div id="mlist"></div></div></div>
+</section>
+
+<section class="view" id="custom">
+ <div class="bar"><button class="ib" onclick="go('settings')" data-i="back"></button><div class="n"><b>Customize everything</b></div><button class="ib" onclick="cxResetAsk()" title="Reset all" data-i="reset"></button></div>
+ <div class="sheet"><div class="stg"><div class="pv"><div class="b">Hey! How does this look?</div><div class="b me">Love it<div class="meta"></div></div></div>
+  <div class="stc"><div class="srch" style="margin:0 0 12px"><span data-i="search"></span><input id="cxq" placeholder="Search settings (radius, text, texture, nav…)" oninput="clearTimeout(cxFilter.h);cxFilter.h=setTimeout(cxFilter,120)"></div>
+  <div id="cxp"></div><div id="cxb"></div><input type="file" id="cxsf" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.opus" hidden onchange="cxSndLoad(this.files[0]);this.value=''"><input type="file" id="cxtf" accept="image/*" hidden onchange="cxTexLoad(this.files[0]);this.value=''"></div></div></div>
+</section>
+<section class="view" id="settings">
+ <div class="bar"><button class="ib" onclick="go('home')" data-i="back"></button><b>Settings</b></div>
+ <div class="sheet"><div class="pfp"><span id="sav"></span><div><button class="btn g" style="margin:0" onclick="$('file').click()"><span data-i="cam"></span>Change photo</button></div></div>
+  <input type="file" id="file" accept="image/*" hidden onchange="setPic(this.files[0])">
+  <label>Your name</label><input type="text" id="nm" oninput="setName(this.value)">
+  <button class="btn" onclick="openStudio('th')"><span data-i="palette"></span>Appearance studio</button><button class="btn g" onclick="go('custom')"><span data-i="palette"></span>Customize everything</button><label style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="checkbox" id="sn" checked onchange="setSnd(this.checked)">Message sounds</label>
+  <div class="nc" style="margin-top:14px"><h3>Feel</h3>
+  
+  <label class="rw"><span class="hint">Haptics</span><input type="checkbox" id="hpk" onchange="LS('twhp',this.checked?'1':'0')"></label>
+  <label class="rw"><span class="hint">Message effects</span><input type="checkbox" id="fxk" onchange="LS('twfx',this.checked?'1':'0')"></label>
+  <label class="rw"><span class="hint">Link previews</span><input type="checkbox" id="lpk" onchange="LS('twlp',this.checked?'1':'0')"></label></div>
+  <details class="nc"><summary>Credits</summary><p class="hint" style="margin:0">App by @wishismachine. Liquid glass: SVG displacement-map refraction, after the open-source projects rizroze/liquid-glass and archisvaze/liquid-glass. Icons: Tabler Icons (MIT). Confetti: canvas-confetti (ISC). iOS haptic method: the checkbox-switch technique used by ios-haptics / web-haptics (MIT). Link previews: microlink.io. Lyrics: LRCLIB. Covers: iTunes Search.</p></details>
+  </div>
+</section>
+</div>
+
+<div id="pc" onclick="if(event.target==this)pcClose()"><div class="pcc" id="pcb"></div></div>
+<div id="ob"><div class="pcc" id="obb"></div></div>
+
+<script src="main.js"></script>
+</body></html>
